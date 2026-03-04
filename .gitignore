@@ -1,0 +1,5 @@
+.env
+Video Presentation.mp4
+DOCUMENTATION.md
+__pycache__/
+*.pyc

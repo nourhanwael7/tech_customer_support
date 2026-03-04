@@ -1,0 +1,13 @@
+{
+  "ticket_id": "TKT-E0674F9F",
+  "created_at": "2026-02-15T04:32:47.600494",
+  "status": "Open",
+  "priority": "Medium",
+  "category": "Account",
+  "customer_name": "Unknown User",
+  "customer_email": "d.brown@email.com",
+  "order_id": null,
+  "description": "User provided email and indicated account-related inquiry.",
+  "sla_deadline": "2026-02-16T04:32:47.600494",
+  "updates": []
+}
