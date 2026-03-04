@@ -1,4 +1,4 @@
-# TechStore Multi-Step AI Customer Support Agent
+# TechStore AI Customer Support
 
 A production-style AI customer support system built with Google Gemini 2.5 Flash, FAISS-based RAG retrieval, real SMTP email delivery, PDF report generation, and a Streamlit interface.
 
@@ -113,37 +113,6 @@ venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
-
-**Step 4. Configure environment variables**
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in your values. See the Configuration section below.
-
----
-
-## Configuration
-
-All configuration is handled through the `.env` file in the project root.
-
-```env
-# Required — Google Gemini API key
-# Get yours free at: https://aistudio.google.com/app/apikey
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Optional — SMTP credentials for real email sending
-# Without these, the agent runs in simulation mode
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-```
-
-Simulation mode is the default when SMTP is not configured. The agent executes the full email pipeline, logs the message to `data/email_log.json`, and reports a message ID in the chat — everything functions except the email is not physically delivered.
-
----
 
 ## Running the Application
 
@@ -302,47 +271,8 @@ The retrieval pipeline loads documents from `knowledge_base/`, splits them into 
 - L2 nearest-neighbour search returns the top 4 most relevant chunks per query
 - Falls back to keyword frequency scoring if the embedding model is unavailable
 
-**Supported file types**
-- `.txt` — plain text, loaded directly
-- `.pdf` — text extracted with pypdf
-
 **Adding documents at runtime**
 Use the Upload section in the Streamlit sidebar. The document is chunked and embedded immediately without restarting the application. Uploaded documents persist for the duration of the session.
-
----
-
-## Email Configuration
-
-### Gmail
-
-Gmail requires an App Password rather than your regular account password.
-
-1. Enable 2-Step Verification at [myaccount.google.com/security](https://myaccount.google.com/security).
-2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
-3. Create a new app password — set the name to "TechStore" or any label you prefer.
-4. Copy the generated 16-character password into your `.env` file.
-
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=you@gmail.com
-SMTP_PASSWORD=abcd efgh ijkl mnop
-```
-
-The spaces in the app password are normal — include them exactly as shown.
-
-### Outlook / Office 365
-
-```env
-SMTP_HOST=smtp.office365.com
-SMTP_PORT=587
-SMTP_USER=you@outlook.com
-SMTP_PASSWORD=your_password
-```
-
-### Other Providers
-
-Any provider that supports SMTP with STARTTLS on port 587 is compatible. Set `SMTP_HOST` to your provider's outbound mail server hostname.
 
 ---
 
