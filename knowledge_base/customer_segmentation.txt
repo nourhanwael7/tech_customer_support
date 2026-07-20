@@ -1,0 +1,3 @@
+Customer segmentation groups audiences by characteristics such as demographics, behavior, needs, purchase intent, lifecycle stage, geography, and psychographics. Personas should include goals, pain points, motivations, objections, preferred channels, and buying triggers. Segments are most useful when they inform messaging, offers, channel selection, and KPIs.
+
+Example personas include Gen Z trend seekers who value authenticity, creator-led discovery, mobile-first experiences, and social participation; budget-conscious parents who value reliability, savings, trust, and practical benefits; and professional buyers who value efficiency, proof, comparison content, and low-risk decisions. Segment assumptions should be validated with first-party data and customer research.
