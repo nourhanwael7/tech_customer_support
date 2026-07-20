@@ -1,356 +1,215 @@
-# TechStore AI Customer Support
+# Marketing Campaign Strategist AI Agent
 
-A production-style AI customer support system built with Google Gemini 2.5 Flash, FAISS-based RAG retrieval, real SMTP email delivery, PDF report generation, and a Streamlit interface.
+A production-ready, domain-specific AI agent for marketing strategy. This project refactors the original customer-support assistant into a **Marketing Campaign Strategist AI Agent** while preserving the existing Streamlit UI pattern, RAG pipeline, FAISS vector store, SentenceTransformers embeddings, conversation memory, Gemini 2.5 Flash reasoning, and tool-calling architecture.
 
----
+## Project Overview
 
-## Table of Contents
+The agent helps marketers:
 
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Project Structure](#project-structure)
-4. [Requirements](#requirements)
-5. [Installation](#installation)
-6. [Configuration](#configuration)
-7. [Running the Application](#running-the-application)
-8. [Agent Pipeline](#agent-pipeline)
-9. [Tools Reference](#tools-reference)
-10. [RAG Pipeline](#rag-pipeline)
-11. [Email Configuration](#email-configuration)
-12. [Sample Data](#sample-data)
-13. [Usage Examples](#usage-examples)
-14. [Tech Stack](#tech-stack)
+- Generate campaign ideas
+- Analyze customer segments and personas
+- Summarize marketing reports
+- Recommend marketing improvements
+- Explain campaign KPIs such as CAC, CTR, ROAS, and conversion rate
+- Answer questions only from retrieved knowledge-base evidence
 
----
+Every response is structured with:
 
-## Overview
+- Summary
+- Insights
+- Recommendations
+- Supporting Evidence
+- Confidence Score
 
-This system implements a multi-step AI agent that processes customer support requests through a deterministic pipeline. Each user message passes through intent detection, document retrieval, tool execution, and response generation — giving full visibility into every decision the agent makes.
+The guardrail phrase **"This recommendation is based on the retrieved knowledge base."** is required in generated answers.
 
-The agent is designed around a rule-based tool router, meaning tool selection is handled by Python logic rather than delegated entirely to the language model. This prevents hallucinated tool calls and ensures reliable, auditable behavior.
+## Architecture
 
----
+```mermaid
+flowchart TD
+    User[User] --> UI[Streamlit UI]
+    UI --> Agent[Marketing Agent]
+    Agent --> Intent[Intent Detection]
+    Intent --> Tools[Marketing Tool Router]
+    Agent --> Retriever[Retriever Top-K]
+    Retriever --> FAISS[FAISS Vector Index]
+    FAISS --> KB[Knowledge Base TXT/PDF]
+    KB --> Embed[SentenceTransformers Embeddings]
+    Tools --> LLM[Gemini 2.5 Flash]
+    Retriever --> LLM
+    LLM --> Output[Structured Response]
+    Output --> UI
+```
 
 ## Features
 
-**AI and Reasoning**
-- Google Gemini 2.5 Flash for natural language understanding and response generation
-- Deterministic rule-based tool router — no LLM hallucinations on tool selection
-- Conversation history awareness — extracts order IDs and emails from prior messages
-- RAG retrieval with FAISS and SentenceTransformers for grounded responses
-
-**Agent Tools**
-- Order status lookup from a CSV database
-- Support ticket creation with SLA tracking and JSON persistence
-- PDF report generation with charts, breakdowns, and insights using ReportLab
-- Real email delivery via SMTP with HTML templates and PDF attachment support
-
-**Interface**
-- Streamlit chat UI with user and agent message bubbles
-- Agent Inspector panel showing pipeline steps, RAG chunks, and tool results
-- PDF upload to extend the knowledge base at runtime
-- One-click PDF report generation and download
-- Conversation history export as JSON
-
----
-
-## Project Structure
-
-```
-customer_support_agent/
-├── app.py                      Streamlit UI — main entry point
-├── agent.py                    Multi-step agent orchestrator
-├── rag.py                      RAG pipeline (FAISS + SentenceTransformers)
-├── tools.py                    Agent tools — order lookup, tickets, reports, email
-├── requirements.txt            Python dependencies
-├── .env.example                Environment variable template
-│
-├── data/
-│   ├── orders.csv              Sample order database (12 orders)
-│   └── email_log.json          Email delivery log (auto-created)
-│
-├── knowledge_base/
-│   ├── faq.txt                 Company FAQ document
-│   └── policies.txt            Company policies document
-│
-├── tickets/                    Support ticket JSON files (auto-created)
-└── reports/                    Generated PDF reports (auto-created)
-```
-
----
-
-## Requirements
-
-- Python 3.10 or higher
-- A Google Gemini API key (free at aistudio.google.com)
-- SMTP credentials for real email sending (optional — simulation mode works without them)
-
----
+- **LLM reasoning:** Gemini 2.5 Flash creates final responses from retrieved context and tool output.
+- **RAG:** Documents are loaded, chunked, embedded, stored in FAISS, and retrieved as top-k context.
+- **Prompt engineering:** Professional marketing strategist system prompt plus five few-shot examples.
+- **Guardrails:** The agent refuses unsupported exact statistics, fabricated case studies, and misleading claims.
+- **Structured outputs:** Responses must include Summary, Insights, Recommendations, Supporting Evidence, and Confidence Score.
+- **Tool calling:** Five marketing-specific tools replace customer-support actions.
+- **Conversation memory:** Recent chat history is included in response generation.
+- **Source citation support:** Retrieved chunks include `[Source: filename]` labels and are shown in the UI.
+- **Inspector panel:** Shows retrieved chunks, confidence score, reasoning trace, pipeline steps, and tool output.
 
 ## Installation
 
-**Step 1. Extract the project**
-
 ```bash
-unzip customer_support_agent.zip
-cd customer_support_agent
-```
-
-**Step 2. Create a virtual environment**
-
-```bash
-python -m venv venv
-
-# Linux / macOS
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
-```
-
-**Step 3. Install dependencies**
-
-```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Running the Application
+Create a `.env` file:
+
+```bash
+GEMINI_API_KEY=your_google_gemini_api_key
+```
+
+Run the app:
 
 ```bash
 streamlit run app.py
 ```
 
-The application opens at `http://localhost:8501` by default.
+## Folder Structure
 
-On first launch, the agent loads the knowledge base from `knowledge_base/` and builds the FAISS vector index. This takes a few seconds. Subsequent launches are faster.
-
----
-
-## Agent Pipeline
-
-Every user message passes through five sequential steps. The Agent Inspector panel in the sidebar shows the result of each step in real time.
-
+```text
+.
+├── app.py                         # Streamlit UI and agent inspector
+├── agent.py                       # Marketing agent orchestration, prompt, guardrails
+├── rag.py                         # FAISS + SentenceTransformers RAG pipeline
+├── tools.py                       # Marketing tool registry and tool implementations
+├── requirements.txt               # Python dependencies
+├── knowledge_base/
+│   ├── marketing_fundamentals.txt
+│   ├── digital_marketing.txt
+│   ├── customer_segmentation.txt
+│   ├── campaign_metrics.txt
+│   ├── brand_guidelines.txt
+│   └── marketing_funnel.txt
+└── evaluation/
+    └── evaluation_examples.md
 ```
-Step 1 — Intent Detection
-         Keyword classifier assigns one of:
-         order_status | send_email | generate_report | create_ticket |
-         refund_return | shipping | product_info | account | general
-
-Step 2 — RAG Retrieval
-         FAISS vector search returns the top 4 most relevant chunks
-         from the knowledge base to ground the response in facts.
-
-Step 3 — Tool Decision  (deterministic Python router)
-         Python rules — not the LLM — decide which tool to call
-         and with what parameters. Order IDs and email addresses
-         are extracted by regex from the current message and from
-         conversation history.
-
-Step 4 — Tool Execution
-         The selected tool runs and returns structured data.
-         If a followup tool is required (e.g. send_email after
-         check_order_status), it executes immediately after.
-
-Step 5 — Response Generation
-         Gemini 2.5 Flash receives the tool result, RAG context,
-         and conversation history, then generates the final reply.
-```
-
-**Tool chaining example**
-
-User input: `"Send me an email about order ORD-001"`
-
-```
-Router detects: email request + order ID "ORD-001"
-
-Step 4a:  check_order_status(order_id="ORD-001")
-          -> customer_email = "john.smith@email.com"
-          -> status = "Shipped", tracking = "TRK-789456123"
-
-Step 4b:  send_email(
-            to_email  = "john.smith@email.com",
-            subject   = "Your TechStore Order Update — ORD-001",
-            body      = <full order details>
-          )
-          -> mode = "real", message_id = "MSG-XXXXXXXXXXXXX"
-
-Step 5:   Gemini generates:
-          "Email sent to john.smith@email.com.
-           Message ID: MSG-XXXXXXXXXXXXX. Is there anything else
-           I can help you with?"
-```
-
-The router scans conversation history automatically. If the user says "Send me an email about my order" without an order ID, the router looks back through previous messages and extracts the last-mentioned order ID or email address.
-
----
-
-## Tools Reference
-
-### check_order_status
-
-Looks up one or more orders from `data/orders.csv`.
-
-| Parameter | Type     | Required | Description                          |
-|-----------|----------|----------|--------------------------------------|
-| order_id  | string   | No       | Order ID in format ORD-XXX           |
-| email     | string   | No       | Customer email address               |
-
-At least one parameter must be provided. Returns full order details including product, quantity, amount, status, tracking number, estimated delivery date, and customer email.
-
----
-
-### create_support_ticket
-
-Creates a JSON support ticket in the `tickets/` directory with SLA deadline tracking.
-
-| Parameter        | Type   | Required | Description                                              |
-|------------------|--------|----------|----------------------------------------------------------|
-| customer_name    | string | Yes      | Customer full name                                       |
-| customer_email   | string | Yes      | Customer email address                                   |
-| issue_category   | string | Yes      | Shipping, Refund, Technical, Billing, Account, or General |
-| description      | string | Yes      | Description of the issue                                 |
-| priority         | string | No       | Low, Medium, High, or Critical (default: Medium)         |
-| order_id         | string | No       | Related order ID if applicable                           |
-
-SLA response times by priority:
-
-| Priority | Response Time |
-|----------|--------------|
-| Critical | 2 hours      |
-| High     | 8 hours      |
-| Medium   | 24 hours     |
-| Low      | 48 hours     |
-
----
-
-### generate_report
-
-Reads all tickets from `tickets/`, aggregates statistics, and generates a PDF report saved to `reports/`.
-
-No parameters required.
-
-The PDF report includes:
-- KPI summary row — total tickets, open count, critical and high priority count, top issue category
-- Tickets by category with vertical bar chart and percentage breakdown table
-- Tickets by priority with colour-coded rows and SLA reference
-- Recent tickets table showing the last 10 created
-- Insights and recommendations section
-
-Returns the file path for immediate download in the Streamlit UI.
-
----
-
-### send_email
-
-Sends an email via SMTP if configured, otherwise falls back to simulation mode.
-
-| Parameter        | Type   | Required | Description                                            |
-|------------------|--------|----------|--------------------------------------------------------|
-| to_email         | string | Yes      | Recipient email address                                |
-| subject          | string | Yes      | Email subject line                                     |
-| body             | string | Yes      | Plain text body (wrapped in branded HTML template)     |
-| from_name        | string | No       | Sender display name (default: TechStore Support)       |
-| attachment_path  | string | No       | Absolute path to a file to attach (e.g. a PDF report)  |
-
-Returns:
-- `mode: "real"` when the email was delivered via SMTP
-- `mode: "simulated"` when SMTP is not configured
-- `mode: "smtp_failed"` when SMTP is configured but delivery failed, with an error description
-
----
 
 ## RAG Pipeline
 
-The retrieval pipeline loads documents from `knowledge_base/`, splits them into overlapping chunks, embeds them with `all-MiniLM-L6-v2` from SentenceTransformers, and stores them in a FAISS `IndexFlatL2` index.
+1. Load marketing `.txt` and optional `.pdf` documents from `knowledge_base/`.
+2. Normalize whitespace.
+3. Chunk documents into overlapping word chunks.
+4. Embed chunks with `all-MiniLM-L6-v2` from SentenceTransformers.
+5. Store embeddings in a FAISS `IndexFlatL2` index.
+6. Retrieve the top-k most relevant chunks for each user question.
+7. Send retrieved context to Gemini with guardrails and tool output.
 
-**Chunking parameters**
-- Chunk size: ~400 words
-- Overlap: 80 words — preserves context at chunk boundaries
+If embeddings are unavailable, the pipeline falls back to keyword retrieval so the demo remains functional.
 
-**Retrieval**
-- L2 nearest-neighbour search returns the top 4 most relevant chunks per query
-- Falls back to keyword frequency scoring if the embedding model is unavailable
+## Prompt Engineering
 
-**Adding documents at runtime**
-Use the Upload section in the Streamlit sidebar. The document is chunked and embedded immediately without restarting the application. Uploaded documents persist for the duration of the session.
+The system prompt instructs the agent to:
 
----
+- Use retrieved context first
+- Never fabricate information
+- Clearly state when the knowledge base lacks enough evidence
+- Explain visible reasoning steps concisely
+- Produce structured responses
+- Include confidence level
+- Include the required guardrail phrase
 
-## Sample Data
+Five few-shot examples demonstrate campaign generation, segment analysis, KPI explanation, report summarization, and SEO recommendations.
 
-The project ships with 12 sample orders covering all status types.
+## Knowledge Base
 
-| Order ID | Customer          | Product              | Status     |
-|----------|-------------------|----------------------|------------|
-| ORD-001  | John Smith        | Laptop Pro X1        | Shipped    |
-| ORD-002  | Sarah Johnson     | Wireless Headphones  | Delivered  |
-| ORD-003  | Mike Davis        | Smart Watch Ultra    | Processing |
-| ORD-004  | Emily Chen        | Tablet 10 Pro        | Cancelled  |
-| ORD-005  | Robert Wilson     | Gaming Mouse         | Shipped    |
-| ORD-006  | Lisa Anderson     | 4K Monitor           | Delivered  |
-| ORD-007  | David Brown       | Mechanical Keyboard  | Processing |
-| ORD-008  | Jennifer Taylor   | USB-C Hub            | Shipped    |
-| ORD-009  | Michael Martinez  | Webcam HD Pro        | Delivered  |
-| ORD-010  | Amanda Garcia     | Laptop Stand         | Processing |
-| ORD-011  | James Thompson    | External SSD 1TB     | Shipped    |
-| ORD-012  | Patricia White    | Wireless Charger     | Delivered  |
+The included sample marketing knowledge covers:
 
----
+- Marketing strategies
+- Customer personas
+- KPIs
+- CAC
+- CTR
+- ROAS
+- Conversion rate
+- Email marketing
+- SEO
+- Social media
+- Branding
+- Funnel strategy
 
-## Usage Examples
+## Marketing Tools
 
-**Order tracking**
-```
-"Track my order ORD-001"
-"What is the status of ORD-007?"
-"Check order for sarah.j@email.com"
-```
+The project preserves the original tool-registry architecture while replacing support tools with:
 
-**Email with order details**
-```
-"Send me an email about order ORD-001"
-"Email me about my order"   (uses order ID from conversation history)
-```
+- `CampaignIdeaGenerator`
+- `CustomerSegmentAnalyzer`
+- `MarketingReportSummarizer`
+- `CampaignKPIExplainer`
+- `TrendRecommendationTool`
 
-**Policy questions answered from knowledge base**
-```
-"What is your return policy?"
-"How long does standard shipping take?"
-"Do you offer price matching?"
-"What is covered by the warranty?"
-```
+Tools provide deterministic scaffolds and evidence-aware inputs for final LLM reasoning.
 
-**Support ticket creation**
-```
-"My laptop is broken and I need help"
-"I received the wrong item for order ORD-005"
-"I was charged twice for my order"
-```
+## Guardrails
 
-**Admin report**
-```
-"Generate a PDF report"
-"Show me the support analytics"
-```
+The agent must prevent:
 
----
+- Fake statistics
+- Fabricated case studies
+- Unsupported claims
+- Misleading recommendations
 
-## Tech Stack
+Low-evidence responses include: **"I don't have enough evidence in the knowledge base."**
 
-| Component       | Technology                          |
-|-----------------|-------------------------------------|
-| Language Model  | Google Gemini 2.5 Flash             |
-| Embeddings      | all-MiniLM-L6-v2 (SentenceTransformers) |
-| Vector Store    | FAISS IndexFlatL2                   |
-| PDF Generation  | ReportLab                           |
-| PDF Parsing     | pypdf                               |
-| Email Delivery  | Python smtplib + MIME (STARTTLS)    |
-| UI Framework    | Streamlit                           |
-| Data Storage    | CSV (orders), JSON (tickets, logs)  |
-| Configuration   | python-dotenv                       |
+All recommendations include: **"This recommendation is based on the retrieved knowledge base."**
 
----
+## Evaluation
 
-## License
+Evaluation scenarios are documented in `evaluation/evaluation_examples.md` and include:
 
-MIT License. Free to use, modify, and distribute.
+- Sample questions
+- Expected outputs
+- Hallucination tests
+- Knowledge retrieval tests
+- Edge cases
+- Failure cases
+
+## Design Decisions
+
+- **Reuse over rewrite:** The files and architecture remain compact and close to the original project: `app.py`, `agent.py`, `rag.py`, and `tools.py`.
+- **Deterministic routing:** Intent detection chooses tools with transparent keyword rules before LLM generation.
+- **RAG-first behavior:** The final generator receives retrieved chunks and must answer from them.
+- **Inspectable outputs:** The Streamlit inspector makes RAG and reasoning visible for interviews and demos.
+
+## Trade-offs
+
+- Keyword intent routing is simple and reliable for a portfolio demo but can be expanded with classifier-based routing.
+- FAISS is local and fast, but a hosted vector database may be preferable for multi-user production deployments.
+- The confidence score is heuristic, based primarily on retrieval coverage and tool success.
+
+## Scaling Strategy
+
+- Add persistent vector-index caching and document versioning.
+- Store user sessions and conversation memory in a database.
+- Add automated retrieval evaluation and prompt regression tests.
+- Add role-based document upload and source governance.
+- Move long-running indexing to background jobs.
+
+## Future Improvements
+
+- Add structured JSON schema validation for final responses.
+- Add a campaign brief form with required fields.
+- Add exports for campaign plans and report summaries.
+- Add analytics dashboards for retrieval quality and user satisfaction.
+- Add richer source citations with chunk IDs and page numbers for PDFs.
+
+## Final Assignment Checklist
+
+- ✓ LLM Reasoning
+- ✓ RAG
+- ✓ Prompt Engineering
+- ✓ Domain Adaptation
+- ✓ Guardrails
+- ✓ Structured Output
+- ✓ Architecture
+- ✓ Evaluation
+- ✓ Documentation
+- ✓ Demo Ready
